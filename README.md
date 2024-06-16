@@ -23,7 +23,7 @@ This Powershell Core Durable Function project uses Microsoft's Defender APIs to 
 - [License](#license)
 
 ## Project Structure
-
+```plaintext
 Get-Defender-Vulnerabilities/
 ├── .github/
 │ └── workflows/
@@ -65,10 +65,10 @@ Get-Defender-Vulnerabilities/
 │ ├── TimerTriggerFunction/
 │ │ ├── function.json
 │ │ └── run.ps1
-
 ├── tests/
 │ └── testScripts.ps1
 └── README.md
+```
 
 ## Prerequisites
 
