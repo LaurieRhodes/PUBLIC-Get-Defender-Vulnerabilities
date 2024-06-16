@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      resourceGroupName: 'rg-ase-Defender_Vulnerabilities'
+      functionAppName: 'defendervulnerabilities'
+      tenant: ${{ secrets.AZURE_TENANT_ID }}
+      subscription: ${{ secrets.AZURE_SUBSCRIPTION }}
+      appid: ${{ secrets.AZURE_CLIENT_ID }}
+      appsecret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      deploymentName: 'myDeployment'  # Added deployment name
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Azure CLI
+      run: |
+        az login --service-principal \
+          --username ${{ secrets.AZURE_CLIENT_ID }} \
+          --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+          --tenant ${{ secrets.AZURE_TENANT_ID }}
+        az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION }}
+
+
+    - name: Deploy infrastructure
+      run: |
+        az deployment group create \
+          --resource-group ${{ env.resourceGroupName }} \
+          --name ${{ env.deploymentName }} \
+          --template-file infrastructure/main.bicep \
+          --parameters infrastructure/parameters.json
+                  
+
+    - name: Zip Function App Code
+      run: |
+        cd src/FunctionApp
+        zip -r ../../FunctionApp.zip .
+
+
+    - name: Deploy Function App
+      run: |
+        az functionapp deployment source config-zip \
+          --resource-group ${{ env.resourceGroupName }} \
+          --name ${{ env.functionAppName }} \
+          --src FunctionApp.zip
