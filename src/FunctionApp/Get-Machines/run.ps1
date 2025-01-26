@@ -2,8 +2,30 @@ param($params)
 <#
 Get-Machines
 
-
 #>
+
+
+<#
+  Initialise Modules
+#>
+
+$DebugPreference = 'Continue'
+
+# Get the path to the current script directory
+$scriptDirectory = Split-Path -Parent $PsScriptRoot
+
+# Define the relative path to the modules directory
+$modulesPath = Join-Path $scriptDirectory '\modules'
+
+# Resolve the full path to the modules directory
+$resolvedModulesPath = (Get-Item $modulesPath).FullName
+
+
+# Recursively import all PowerShell modules (.psm1 files) in the modules directory
+Get-ChildItem -Path $resolvedModulesPath -Filter *.psm1 -Recurse | ForEach-Object {
+    Write-Information "Importing module: $_"
+    Import-Module "$_"
+}
 
 
 
@@ -12,32 +34,15 @@ Get-Machines
 #>
 
 $DecodedText = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($params))
-write-debug "(Get-Machines) run with decoded parameters: `n $($DecodedText)"
+write-information "(Get-Machines) run with decoded parameters: `n $($DecodedText)"
 $params = ConvertFrom-Json -inputobject $DecodedText
 
-$ClientId          = $params.ClientId
+$ClientId          = $env:CLIENTID
 
-
+write-information "(Get-Machines) ClientID = $($ClientId )"
 
 
 $output = @()
-
-
-class DeviceTvmSoftwareVulnerabilities {
-    [String]$DeviceId
-    [String]$DeviceName
-    [String]$OSPlatform
-    [String]$OSArchitecture
-    [String]$SoftwareVendor
-    [String]$SoftwareName
-    [String]$SoftwareVersion
-    [String]$CveId
-    [String]$VulnerabilitySeverityLevel
-    [String]$RecommendedSecurityUpdate
-    [String]$RecommendedSecurityUpdateId
-    [String]$CveTags
-    [String]$CveMitigationStatus
-}
 
 <#
 
@@ -46,9 +51,9 @@ class DeviceTvmSoftwareVulnerabilities {
  
 #>
 
-$resourceURL = "https://api.securitycenter.microsoft.com/" 
+$resourceURL = "https://api.securitycenter.microsoft.com/"
 
-$Token = Get-AzureADToken -resource $resourceURL -clientId $ClientId 
+$Token = Get-AzureADToken -resource $resourceURL -clientId $ClientId
 
 $authHeader = @{
     'Authorization' = "Bearer $($token)"
@@ -62,11 +67,11 @@ $apiUrl = "https://au.api.security.microsoft.com/api/machines?`$filter=healthSta
 
 do {
     # Retrieve the current page
-    write-information "Retrieving Machine List $($apiUrl)"
+    write-debug "Retrieving Machine List $($apiUrl)"
     $response = Invoke-RestMethod -Uri $apiUrl -Headers $authHeader -Method Get
     write-debug "Machine List Received"
-    
-    
+
+
     # Process each machine record in the current page
     foreach ($machinerecord in $response.value) {
         $tmpobj = [PSCustomObject]@{
@@ -92,8 +97,8 @@ Start-Sleep -Seconds 2 #account for API limit
  
 #>
 
-
  $Text =  $machineRecordCollection  | convertto-json
+ 
  $Bytes = [System.Text.Encoding]::ASCII.GetBytes($Text)
  $EncodedText =[Convert]::ToBase64String($Bytes)
 

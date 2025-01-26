@@ -3,6 +3,9 @@ param functionAppName string
 param storageAccountName string
 param userAssignedIdentityResourceId string
 param applicationInsightsName string
+param eventHubNamespace string
+param eventHubName string
+param clientID string
 
 var hostingPlanName = functionAppName
 
@@ -28,6 +31,18 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   }
   properties: {}
 }
+
+
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: applicationInsightsName
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'rest'
+  }
+}
+
 
 
 resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
@@ -79,7 +94,19 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
         {
           name: 'ExternalDurablePowerShellSDK'
           value: 'true'
-        }                              
+        } 
+        {
+          name: 'EVENTHUBNAMESPACE'
+          value: '${eventHubNamespace}'
+        }
+        {
+          name: 'EVENTHUBNAME'
+          value: '${eventHubName}'
+        }  
+        {
+          name: 'CLIENTID'
+          value: '${clientID}'
+        }                                                       
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
@@ -92,21 +119,4 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
   }
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: applicationInsightsName
-  location: location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-  }
-}
-
-module functionAppModule 'modules/functionApp.bicep' = {
-  name: 'functionAppDeployment'
-  params: {
-    functionAppName: functionAppName
-    location: location
-  }
-}
 

@@ -1,4 +1,4 @@
-{
+﻿{
   "bindings": [
     {
       "authLevel": "function",
@@ -6,7 +6,10 @@
       "direction": "in",
       "name": "req",
       "route": "orchestrators/{FunctionName}",
-      "methods": ["post", "get"]
+      "methods": [
+        "post",
+        "get"
+      ]
     },
     {
       "type": "http",

@@ -1,8 +1,14 @@
 param($params)
 <#
+
 Get-Vulnerabilities
 
+#>
 
+$DebugPreference = 'Continue'
+    
+<#
+  Initialise Modules
 #>
 
 
@@ -12,22 +18,18 @@ Get-Vulnerabilities
 
 
 $DecodedText = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($params))
-write-debug "(Get-Vulnerabilities) run with decoded parameters: `n $($DecodedText)"
+
 $params = ConvertFrom-Json -inputobject $DecodedText
 
-$ClientId          = $params.ClientId
+$ClientId          = $env:CLIENTID
 $data              = $params.data 
+$EventHubName      = $env:EVENTHUB
+$EventHubNameSpace = $env:EVENTHUBNAMESPACE
+
 
 write-debug "ClientId = $($ClientId )"
-write-debug "data = $($data )"
 
-# Decode the Machines array
-$DecodedText = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($data))
-$machineRecordCollection = ConvertFrom-Json -inputobject $DecodedText
-
-
-
-
+$machineRecordCollection = $params.data 
 
 $output = @()
 
@@ -49,8 +51,6 @@ class DeviceTvmSoftwareVulnerabilities {
     [String]$CveMitigationStatus
 }
 
-
-
 function Get-MachineVulnerabilities {
     param (
         [string]$DeviceId,
@@ -58,7 +58,6 @@ function Get-MachineVulnerabilities {
         [string]$OSPlatform,
         [string]$OSArchitecture
     )
-
 
 $resourceURL = "https://api.securitycenter.microsoft.com/" 
 
@@ -74,15 +73,15 @@ $authHeader = @{
 
     do {
         # Retrieve the current page
-        write-information "Retrieving vulnerability List $($apiUrl)"
-        $response = Invoke-RestMethod -Uri $apiUrl -Headers $authHeader -Method Get
-        write-information "vulnerability List Received"
+        write-debug "Retrieving vulnerability List $($apiUrl)"
+        # Disable Keep Alive to prevent long running hang
+        $response = Invoke-RestMethod -Uri $apiUrl -Headers $authHeader -Method Get -DisableKeepAlive
+        write-debug "vulnerability List Received"
 
-        
-        Start-Sleep -Seconds 2 #account for API limit
-        
+        Start-Sleep -Seconds 5 # account for API request limitations
+
         foreach($vulnerability in $($response.value)){
-            
+
             $tmpobject = [DeviceTvmSoftwareVulnerabilities]::New()
 
             $tmpobject.DeviceId = $DeviceId
@@ -98,51 +97,52 @@ $authHeader = @{
             $tmpobject.RecommendedSecurityUpdateId = $vulnerability.fixingKbId
             $tmpobject.CveTags = ''
             $tmpobject.CveMitigationStatus = ''
-            
+
             $OutputArray += $tmpobject
-            
+
         }
 
         # Check if there is a next page
         $apiUrl = $response.'@odata.nextLink'
-
+            
+        # Release the response object
+        $response = $null
+    
     } while ($apiUrl -ne $null)
 
-
   return $OutputArray
-       
+
 
 }
 
 
+$EventHubresourceURL = "https://eventhubs.azure.net" # The resource name to request a token for Event Hubs
+$EventHubURI = "https://$($EventHubNameSpace).servicebus.windows.net/$($EventHubName)/messages?timeout=60"
+
+$EventHubtoken = Get-AzureADToken -resource $EventHubresourceURL -clientId $ClientId
+
+$EventHubheader = @{
+    "Authorization" = "Bearer $($EventHubtoken)"
+    "Content-Type" = "application/json"
+}
+
 
   # Process each machine record in the current page
   foreach ($machinerecord in $machineRecordCollection) {
-      
-      
+
       $DeviceId  = $machinerecord.DeviceId 
       $DeviceName = $machinerecord.DeviceName 
       $OSPlatform = $machinerecord.OSPlatform
       $OSArchitecture = $machinerecord.OSArchitecture
-      
+
      $vulnerabilities =  Get-MachineVulnerabilities -DeviceId $DeviceId -DeviceName $DeviceName -OSPlatform $OSPlatform -OSArchitecture $OSArchitecture 
-     
+
      foreach ($vulnerability in $vulnerabilities){
-        $vulnerabilityCollection += $vulnerability 
-     }
-      
-  }
-
-
-<#
-
- Return an Array of vulnerabilities
+        $vulnerabilityCollection += $vulnerability
+        Invoke-RestMethod -Uri $EventHubURI  -Method POST -Headers $EventHubheader -Body $(Convertto-json -inputobject $vulnerability) -Verbose -SkipHeaderValidation  
+        write-debug "Event Hub data sent"
+     } # End foreach Vulnerability
+                
+ }  # End Vulnerabilities    
  
-#>
-
-
- $Text =   convertto-json -inputobject $vulnerabilityCollection
- $Bytes = [System.Text.Encoding]::ASCII.GetBytes($Text)
- $EncodedText =[Convert]::ToBase64String($Bytes)
-
- $EncodedText 
+ 

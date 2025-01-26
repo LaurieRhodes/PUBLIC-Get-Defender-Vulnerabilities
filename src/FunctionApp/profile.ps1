@@ -21,3 +21,31 @@
 
 # You can also define functions or aliases that can be referenced in any of your PowerShell functions.
 Import-Module AzureFunctions.PowerShell.Durable.SDK -ErrorAction Stop
+
+
+<#
+  Initialise Custom Powershell Modules
+#>
+
+# Get the path to the current script directory
+
+$scriptDirectory = Split-Path -Parent $PsScriptRoot
+Write-Information "ScriptDirectory = $($scriptDirectory)"
+
+# Define the relative path to the modules directory
+$modulesPath = Join-Path $scriptDirectory '\wwwroot\modules'
+Write-Information "modulesPath = $($modulesPath)"
+
+# Resolve the full path to the modules directory
+$resolvedModulesPath = (Get-Item $modulesPath).FullName
+Write-Information "resolvedModulesPath = $($resolvedModulesPath)"
+
+# Recursively import all PowerShell modules (.psm1 files) in the modules directory
+Get-ChildItem -Path $resolvedModulesPath -Filter *.psm1 -Recurse | ForEach-Object {
+    Write-Information "Importing module: $($_)"
+    Import-Module "$_"
+}
+
+
+# Load the System.Web assembly to enable UrlEncode
+[Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null

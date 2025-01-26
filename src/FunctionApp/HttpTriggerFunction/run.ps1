@@ -1,8 +1,5 @@
 param($req)
 
-# Extract the request body (if any)
-#$body = $req | ConvertFrom-Json
-
 $body = @"
 {"context": "value"}
 "@

@@ -1,47 +1,48 @@
-# Load the necessary .NET assemblies
-Add-Type -AssemblyName 'System.Net.Http'
-Add-Type -AssemblyName 'System.Net'
-Add-Type -AssemblyName 'System.Net.Primitives'
-
 function Get-AzureADToken {
+    [CmdletBinding()]
     param (
-        [string]$resource, # https://api.securitycenter.microsoft.com/"
+        [Parameter(Mandatory = $true, HelpMessage = "The resource identifier for which the token is requested.")]
+        [string]$resource,
+
+        [Parameter(Mandatory = $false, HelpMessage = "The API version to use for the request.")]
         [string]$apiVersion = "2019-08-01",
-        [string]$clientId  # The client ID of the user-assigned managed identity
+
+        [Parameter(Mandatory = $true, HelpMessage = "The client ID of the user-assigned managed identity.")]
+        [string]$clientId
     )
 
-
+    # Load the necessary .NET assemblies
+    Add-Type -AssemblyName 'System.Net.Http'
+    Add-Type -AssemblyName 'System.Net'
+    Add-Type -AssemblyName 'System.Net.Primitives'
 
     try {
-    
+        # Construct the URL for the request
+        $url = "$($env:IDENTITY_ENDPOINT)?resource=$($resource)&client_id=$($clientId)&api-version=$($apiVersion)"
+        Write-Debug "Constructed URL: $url"
 
- 
-$resource = "?resource=$($resource)"
-$clientId="&client_id=$($clientId)"
+        # Create the headers for the request
+        $headers = @{
+            "Metadata" = "True"
+            "X-IDENTITY-HEADER" = $env:IDENTITY_HEADER
+        }
 
-$url = $env:IDENTITY_ENDPOINT + $resource + $clientId + "&api-version=$($apiVersion)"
-Write-Debug "url = $($url)"  
+        Write-Debug "Calling Azure AD to obtain the token..."
 
-$Headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-$Headers.Add("Metadata", "True")
-$Headers.Add("X-IDENTITY-HEADER", $env:IDENTITY_HEADER)
-$accessToken = Invoke-RestMethod -Uri $url -Method 'GET' -Headers $Headers
+        # Make the GET request to obtain the token
+        $tokenResponse = Invoke-RestMethod -Method 'GET' -Headers $headers -Uri $url -DisableKeepAlive
 
-$token = $accessToken.access_token 
+        if (-not $tokenResponse -or -not $tokenResponse.access_token) {
+            throw "No access token returned in the response."
+        }
 
-        
-  return $token
-        
+        $accessToken = $tokenResponse.access_token
+        Write-Debug "Access token successfully obtained."
+
+        # Return the access token
+        return $accessToken
     } catch {
-    $errorMessage = $_.Exception.Message
-    $errorDetails = $_.Exception.InnerException
-    if ($errorDetails) {
-        $errorMessage += " Inner Exception: $($errorDetails.Message)"
+        Write-Error "Failed to obtain Azure AD token: $_"
+        throw $_  # Re-throw the error for further handling if necessary
     }
-    Write-Error -Message "(Get-AzureADToken) Failed: $errorMessage"
 }
-}
-
-
-
-

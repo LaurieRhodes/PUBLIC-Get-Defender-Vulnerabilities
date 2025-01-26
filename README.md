@@ -23,6 +23,7 @@ This Powershell Core Durable Function project uses Microsoft's Defender APIs to 
 - [License](#license)
 
 ## Project Structure
+
 ```plaintext
 Get-Defender-Vulnerabilities/
 ├── .github/
