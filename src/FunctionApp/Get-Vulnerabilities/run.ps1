@@ -23,7 +23,7 @@ $params = ConvertFrom-Json -inputobject $DecodedText
 
 $ClientId          = $env:CLIENTID
 $data              = $params.data 
-$EventHubName      = $env:EVENTHUB
+$EventHubName      = $env:EVENTHUBNAME
 $EventHubNameSpace = $env:EVENTHUBNAMESPACE
 
 
