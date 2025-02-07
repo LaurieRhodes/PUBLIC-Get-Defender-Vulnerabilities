@@ -63,6 +63,15 @@ Below is an example of a `parameters.json` file with sample values:
     },
     "userAssignedIdentityResourceId": {
       "value": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{resourceName}"
+    },
+    "clientID": {
+      "value": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    },
+    "eventHubNamespace": {
+      "value": "ehns-ase-defender01"
+    },
+    "eventHubName": {
+      "value": "Defender"
     }
   }
 }

@@ -9,10 +9,6 @@ Expand table
 | Application     | Vulnerability.Read.All | 'Read Threat and Vulnerability Management vulnerability information' |
 | Application     | Machine.Read.All       | 'Read all machine profiles'                                          |
 
-
-
-
-
 ### Step 1: Create User Assigned Managed Identity
 
 1. Within the Azure Portal select **Managed Identities**.

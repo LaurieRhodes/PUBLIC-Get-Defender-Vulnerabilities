@@ -111,37 +111,13 @@ Create an Event Hub with meaningful name for Defender Vulnerability data.
 
 Assign Azure Event Hubs Data Sender Role to the previously create Managed Identity.
 
-### 5. Customise function variables
-
-Within the Orchestrator Function App run.ps1 file located at:
-
-```plaintext
-Get-Defender-Vulnerabilities/
-├── src/
-│ └── FunctionApp/
-│ ├── OrchestratorFunction/
-│ │ └── run.ps1
-```
-
-Modify the variables at the start of the script.
-
-```powershell
-$EventHubNameSpace = 'MyEventhub'
-$EventHubName      = 'DeviceTvmSoftwareVulnerabilities'
-$ClientId          = 'fea3d290a8-97a1-41fb-8ff8-97fea3d290a0'
-```
-
-- Customise the **'ClientID'** variable with your created User Defined Managed Identity Client ID.
-
-- Customise the Event Hub Namespace Name and ID to match The Event Hub created for Defender Vulnerability Management.
-
-### 6. Customise Bicep properties
+### 5. Customise Bicep properties
 
 Modify the Bicep parameters file with names for the Azure components to be deployed.
 
 [Details can be found here](./docs/Bicep.md)
 
-### 7. Deploy the Function App
+### 6. Deploy the Function App
 
 The function app will be deployed automatically by the GitHub Actions workflow upon pushing to the main branch.
 
