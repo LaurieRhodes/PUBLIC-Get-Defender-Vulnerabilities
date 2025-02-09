@@ -11,6 +11,7 @@ Get-Machines
 
 $DebugPreference = 'Continue'
 
+<#
 # Get the path to the current script directory
 $scriptDirectory = Split-Path -Parent $PsScriptRoot
 
@@ -27,19 +28,20 @@ Get-ChildItem -Path $resolvedModulesPath -Filter *.psm1 -Recurse | ForEach-Objec
     Import-Module "$_"
 }
 
-
+#>
 
 <#
   Get Parameters
 #>
 
-$DecodedText = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($params))
-write-information "(Get-Machines) run with decoded parameters: `n $($DecodedText)"
-$params = ConvertFrom-Json -inputobject $DecodedText
+# Used to demonstrate parameter passing
+#$DecodedText = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($params))
+#write-information "(Get-Machines) run with decoded parameters: `n $($DecodedText)"
+#$params = ConvertFrom-Json -inputobject $DecodedText
 
-$ClientId          = $env:CLIENTID
+#$ClientId          = $env:CLIENTID
 
-write-information "(Get-Machines) ClientID = $($ClientId )"
+write-debug "(Get-Machines) ClientID = $($env:CLIENTID)"
 
 
 $output = @()
@@ -53,7 +55,7 @@ $output = @()
 
 $resourceURL = "https://api.securitycenter.microsoft.com/"
 
-$Token = Get-AzureADToken -resource $resourceURL -clientId $ClientId
+$Token = Get-AzureADToken -resource $resourceURL -clientId $env:CLIENTID
 
 $authHeader = @{
     'Authorization' = "Bearer $($token)"

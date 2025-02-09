@@ -1,31 +1,31 @@
 param($context)
 
 # Environment variables
-$EventHubName      = $env:EVENTHUB
-$EventHubNameSpace = $env:EVENTHUBNAMESPACE
-$ClientId          = $env:CLIENTID
+#$EventHubName      = $env:EVENTHUB
+#$EventHubNameSpace = $env:EVENTHUBNAMESPACE
+#$ClientId          = $env:CLIENTID
 
 $DebugPreference = 'Continue'
     
 Write-Debug "Orchestrator function started at: $(Get-Date)"
-Write-Debug "Environment Variables: EventHub=$EventHubName, Namespace=$EventHubNameSpace, ClientID=$ClientId"
+#Write-Debug "Environment Variables: EventHub=$EventHubName, Namespace=$EventHubNameSpace, ClientID=$ClientId"
 
 
 <#
   Task 1.   Get Machine List
 #>
 
-$params = @{
-    ClientId          = $ClientId
-}
+#$params = @{
+#    ClientId          = $ClientId
+#}
 
-$Text =  $params  | convertto-json
-$Bytes = [System.Text.Encoding]::ASCII.GetBytes($Text)
-$EncodedText =[Convert]::ToBase64String($Bytes)
+#$Text =  $params  | convertto-json
+#$Bytes = [System.Text.Encoding]::ASCII.GetBytes($Text)
+#$EncodedText =[Convert]::ToBase64String($Bytes)
 
 
 write-debug "Starting Invoke-DurableActivity -FunctionName Get-Machines"
-$GetMachineTask = Invoke-DurableActivity -FunctionName "Get-Machines" -Input $EncodedText 
+$GetMachineTask = Invoke-DurableActivity -FunctionName "Get-Machines" #-Input $EncodedText 
 $DecodedText = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($GetMachineTask))
 $machineRecordCollection = ConvertFrom-Json -inputobject $DecodedText
 write-debug "Invoke-DurableActivity Get-Machines complete"
@@ -36,10 +36,10 @@ $ParallelOutput = @()
 
 $ParallelTasks = 
 
-foreach ($WorkItem in $machineRecordCollection) {
+foreach ($machineRecord in $machineRecordCollection) {
     $params = @{
-        ClientId = $ClientId
-        data = $WorkItem
+#        ClientId = $ClientId
+        data = $machineRecord
     }
         
     $EncodedText = [Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes((ConvertTo-Json -InputObject $params -Depth 10)))

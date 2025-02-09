@@ -27,7 +27,7 @@ $EventHubName      = $env:EVENTHUBNAME
 $EventHubNameSpace = $env:EVENTHUBNAMESPACE
 
 
-write-debug "ClientId = $($ClientId )"
+write-debug "ClientId = $($env:CLIENTID)"
 
 $machineRecordCollection = $params.data 
 
@@ -61,7 +61,7 @@ function Get-MachineVulnerabilities {
 
 $resourceURL = "https://api.securitycenter.microsoft.com/" 
 
-$Token = Get-AzureADToken -resource $resourceURL -clientId $ClientId
+$Token = Get-AzureADToken -resource $resourceURL -clientId $env:CLIENTID
 
 $authHeader = @{
     'Authorization' = "Bearer $($token)"
@@ -119,7 +119,7 @@ $authHeader = @{
 $EventHubresourceURL = "https://eventhubs.azure.net" # The resource name to request a token for Event Hubs
 $EventHubURI = "https://$($EventHubNameSpace).servicebus.windows.net/$($EventHubName)/messages?timeout=60"
 
-$EventHubtoken = Get-AzureADToken -resource $EventHubresourceURL -clientId $ClientId
+$EventHubtoken = Get-AzureADToken -resource $EventHubresourceURL -clientId $env:CLIENTID
 
 $EventHubheader = @{
     "Authorization" = "Bearer $($EventHubtoken)"

@@ -5,10 +5,13 @@ param userAssignedIdentityResourceId string
 param applicationInsightsName string
 param eventHubNamespace string
 param eventHubName string
-param clientID string
 
 var hostingPlanName = functionAppName
 
+// Get existing managed identity resource
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: last(split(userAssignedIdentityResourceId, '/'))
+}
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: storageAccountName
@@ -42,8 +45,6 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
     Request_Source: 'rest'
   }
 }
-
-
 
 resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
   name: functionAppName
@@ -105,7 +106,7 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
         }  
         {
           name: 'CLIENTID'
-          value: '${clientID}'
+          value: managedIdentity.properties.clientId
         }                                                       
       ]
       ftpsState: 'FtpsOnly'
@@ -118,5 +119,3 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
     }
   }
 }
-
-
