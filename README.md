@@ -32,9 +32,6 @@ Get-Defender-Vulnerabilities/
 ├── infrastructure/
 │ ├── main.bicep
 │ ├── parameters.json
-│ └── modules/
-│ ├── functionApp.bicep
-│ └── otherModules.bicep
 ├── src/
 │ └── FunctionApp/
 │ ├── host.json
@@ -60,14 +57,9 @@ Get-Defender-Vulnerabilities/
 │ ├── OrchestratorFunction/
 │ │ ├── function.json
 │ │ └── run.ps1
-│ ├── Send-toEventHub/
-│ │ ├── function.json
-│ │ └── run.ps1
 │ ├── TimerTriggerFunction/
 │ │ ├── function.json
 │ │ └── run.ps1
-├── tests/
-│ └── testScripts.ps1
 └── README.md
 ```
 
@@ -109,7 +101,7 @@ Assign Defender permission to the managed identity using Azure AD.
 
 Create an Event Hub with meaningful name for Defender Vulnerability data.
 
-Assign Azure Event Hubs Data Sender Role to the previously create Managed Identity.
+Assign **Azure Event Hubs Data Sender Role** to the previously create Managed Identity.
 
 ### 5. Customise Bicep properties
 

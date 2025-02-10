@@ -15,7 +15,9 @@
     },
     "logLevel": {
       "default": "Information",
-      "Function": "Information"
+      "OrchestratorFunction": "Information",
+      "Get-Machines": "Information",
+      "Get-Vulnerabilities": "Information"
     }
   },
   "extensions": {
